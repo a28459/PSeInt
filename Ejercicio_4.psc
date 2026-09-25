@@ -1,4 +1,4 @@
-Algoritmo MiSolucion
+Algoritmo Ejercicio_4
     Definir matriz Como Caracter
     Definir fila Como Entero
     Definir columna Como Entero
