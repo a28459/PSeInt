@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Taller práctico de Git, GitHub, Pull Requests, CI/CD y GitHub Pages para alumnado de DAM de Centro San Valero." />
+  <title>Git en acción: Del Commit al Deploy · Centro San Valero</title>
+
+  <style>
+    :root {
+      /* Paleta inspirada en la identidad visual de Centro San   Valero */
+      --csv-blue: #0075a9;
+      --csv-blue-2: #0095c8;
+      --csv-deep: #063b55;
+      --csv-ink: #111820;
+      --csv-muted: #63717c;
+      --csv-soft: #eef6f9;
+      --csv-line: #dbe7ec;
+      --white: #ffffff;
+      --success: #29a36a;
+      --warning: #f3a712;
+      --shadow: 0 20px 60px rgba(5, 55, 80, .12);
+      --radius-xl: 28px;
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --max: 1180px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+      background: var(--white);
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--csv-ink);
+      background:
+        radial-gradient(circle at 8% 3%, rgba(0,149,200,.10), transparent 26%),
+        radial-gradient(circle at 92% 15%, rgba(0,117,169,.08), transparent 28%),
+        #fff;
+      overflow-x: hidden;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; }
+
+    .container {
+      width: min(calc(100% - 40px), var(--max));
+      margin: 0 auto;
+    }
+
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(16px);
+      background: rgba(255,255,255,.84);
+      border-bottom: 1px solid rgba(219,231,236,.85);
+    }
+
+    .nav-inner {
+      min-height: 76px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      min-width: 0;
+    }
+
+    .brand img {
+      width: 176px;
+      height: 48px;
+      object-fit: contain;
+      object-position: left center;
+      display: block;
+    }
+
+    .brand-fallback {
+      display: none;
+      font-weight: 800;
+      letter-spacing: -.03em;
+      line-height: 1;
+    }
+
+    .brand-fallback small {
+      display: block;
+      color: var(--csv-muted);
+      font-weight: 700;
+      font-size: 9px;
+      letter-spacing: .14em;
+      margin-bottom: 4px;
+    }
+
+    .brand-fallback strong {
+      font-size: 21px;
+    }
+
+    .brand-fallback strong span { color: var(--csv-blue); }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .nav-links a {
+      padding: 9px 12px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #32414b;
+      transition: .2s ease;
+    }
+
+    .nav-links a:hover {
+      background: var(--csv-soft);
+      color: var(--csv-blue);
+    }
+
+    .hero {
+      position: relative;
+      min-height: 78vh;
+      display: grid;
+      place-items: center;
+      padding: 94px 0 70px;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 58px;
+      align-items: center;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: var(--csv-soft);
+      color: var(--csv-deep);
+      font-size: 12px;
+      font-weight: 850;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      border: 1px solid rgba(0,117,169,.12);
+    }
+
+    .eyebrow-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--csv-blue-2);
+      box-shadow: 0 0 0 6px rgba(0,149,200,.12);
+    }
+
+    h1 {
+      font-size: clamp(48px, 7vw, 90px);
+      line-height: .94;
+      letter-spacing: -.065em;
+      margin: 24px 0;
+      max-width: 900px;
+    }
+
+    h1 .accent {
+      color: var(--csv-blue);
+      display: inline-block;
+      position: relative;
+    }
+
+    .hero-copy {
+      max-width: 700px;
+      font-size: clamp(18px, 2vw, 22px);
+      line-height: 1.55;
+      color: #51616c;
+      margin: 0 0 30px;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .btn {
+      border: 0;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-height: 48px;
+      padding: 0 18px;
+      border-radius: 12px;
+      font-weight: 800;
+      transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+    }
+
+    .btn:hover { transform: translateY(-2px); }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--csv-blue), var(--csv-blue-2));
+      color: white;
+      box-shadow: 0 12px 28px rgba(0,117,169,.24);
+    }
+    .btn-secondary {
+      background: white;
+      border: 1px solid var(--csv-line);
+      color: var(--csv-deep);
+    }
+
+    .hero-card {
+      position: relative;
+      border-radius: 30px;
+      background: linear-gradient(145deg, #062e43 0%, #075675 52%, #0787b7 100%);
+      color: white;
+      padding: 28px;
+      box-shadow: 0 30px 80px rgba(3,54,78,.25);
+      overflow: hidden;
+      min-height: 430px;
+    }
+
+    .hero-card::before,
+    .hero-card::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .hero-card::before {
+      width: 250px;
+      height: 250px;
+      background: rgba(255,255,255,.08);
+      top: -80px;
+      right: -80px;
+    }
+
+    .hero-card::after {
+      width: 160px;
+      height: 160px;
+      border: 30px solid rgba(255,255,255,.06);
+      bottom: -80px;
+      left: -45px;
+    }
+
+    .terminal-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .window-dots { display: flex; gap: 7px; }
+    .window-dots span { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,.45); }
+    .window-dots span:nth-child(2) { background: rgba(255,255,255,.64); }
+    .window-dots span:nth-child(3) { background: rgba(255,255,255,.82); }
+
+    .terminal-label {
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.72);
+    }
+
+    .flow-visual {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      gap: 10px;
+    }
+
+    .flow-line {
+      display: grid;
+      grid-template-columns: 42px 1fr auto;
+      gap: 13px;
+      align-items: center;
+      padding: 13px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.075);
+      border: 1px solid rgba(255,255,255,.10);
+      opacity: .42;
+      transform: translateX(6px);
+      transition: .35s ease;
+    }
+
+    .flow-line.active {
+      opacity: 1;
+      transform: translateX(0);
+      background: rgba(255,255,255,.15);
+      box-shadow: inset 3px 0 0 #58d4ff;
+    }
+
+    .flow-icon {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border-radius: 11px;
+      background: rgba(255,255,255,.12);
+      font-size: 18px;
+    }
+
+    .flow-line strong { display: block; font-size: 14px; }
+    .flow-line small { color: rgba(255,255,255,.68); font-size: 11px; }
+    .flow-status { font-size: 11px; font-weight: 800; color: #8ee6ff; }
+
+    .section {
+      padding: 88px 0;
+    }
+
+    .section.soft {
+      background: linear-gradient(180deg, #f7fbfd, #eef6f9);
+      border-top: 1px solid #e4eff3;
+      border-bottom: 1px solid #e4eff3;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 30px;
+      margin-bottom: 38px;
+    }
+
+    .section-kicker {
+      color: var(--csv-blue);
+      font-size: 12px;
+      letter-spacing: .12em;
+      font-weight: 900;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: clamp(34px, 4vw, 54px);
+      line-height: 1;
+      letter-spacing: -.045em;
+    }
+
+    .section-desc {
+      max-width: 540px;
+      margin: 0;
+      color: var(--csv-muted);
+      line-height: 1.6;
+    }
+
+    .journey {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    .step {
+      background: white;
+      border: 1px solid var(--csv-line);
+      border-radius: var(--radius-lg);
+      padding: 22px;
+      position: relative;
+      min-height: 215px;
+      transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease;
+      overflow: hidden;
+    }
+
+    .step:hover {
+      transform: translateY(-6px);
+      border-color: rgba(0,117,169,.35);
+      box-shadow: var(--shadow);
+    }
+
+    .step-num {
+      font-size: 44px;
+      line-height: 1;
+      color: #d9ebf2;
+      font-weight: 900;
+      letter-spacing: -.06em;
+      margin-bottom: 22px;
+    }
+
+    .step h3 {
+      margin: 0 0 9px;
+      font-size: 19px;
+      letter-spacing: -.02em;
+    }
+
+    .step p {
+      margin: 0;
+      color: var(--csv-muted);
+      line-height: 1.55;
+      font-size: 14px;
+    }
+
+    .step-tag {
+      display: inline-flex;
+      margin-top: 16px;
+      padding: 6px 9px;
+      border-radius: 999px;
+      background: var(--csv-soft);
+      color: var(--csv-blue);
+      font-weight: 800;
+      font-size: 11px;
+    }
+
+    .pipeline-shell {
+      background: var(--csv-ink);
+      color: white;
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .pipeline-grid {
+      display: grid;
+      grid-template-columns: .85fr 1.15fr;
+    }
+
+    .pipeline-info {
+      padding: 38px;
+      background: linear-gradient(145deg, #053a55, #006f9d);
+    }
+
+    .pipeline-info h3 {
+      font-size: 34px;
+      letter-spacing: -.04em;
+      margin: 0 0 14px;
+    }
+
+    .pipeline-info p {
+      color: rgba(255,255,255,.76);
+      line-height: 1.6;
+      margin: 0 0 26px;
+    }
+
+    .pipeline-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+
+    .pipeline-console {
+      padding: 32px;
+      min-height: 390px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background:
+        linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px),
+        #111820;
+      background-size: 28px 28px;
+    }
+
+    .console {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 13px;
+      line-height: 1.8;
+    }
+
+    .console-row {
+      display: flex;
+      gap: 12px;
+      opacity: 0;
+      transform: translateY(4px);
+      transition: .25s ease;
+    }
+
+    .console-row.show { opacity: 1; transform: translateY(0); }
+    .console-prefix { color: #54d8ff; }
+    .console-ok { color: #77e8ac; }
+    .console-muted { color: #82919b; }
+
+    .progress {
+      height: 7px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.10);
+      overflow: hidden;
+      margin: 24px 0 10px;
+    }
+
+    .progress > span {
+      height: 100%;
+      width: 0;
+      display: block;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #4ac8f0, #7bf2bd);
+      transition: width .55s ease;
+    }
+
+    .comparison {
+      display: grid;
+      grid-template-columns: 1fr 64px 1fr;
+      gap: 20px;
+      align-items: stretch;
+    }
+
+    .stack-card {
+      background: white;
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--csv-line);
+      padding: 30px;
+      box-shadow: 0 12px 40px rgba(4, 60, 86, .06);
+    }
+
+    .stack-card .label {
+      display: inline-flex;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: var(--csv-soft);
+      color: var(--csv-blue);
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .stack-card h3 {
+      font-size: 27px;
+      margin: 18px 0 24px;
+      letter-spacing: -.035em;
+    }
+
+    .stack-list { display: grid; gap: 12px; }
+
+    .stack-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 13px;
+      border-radius: 13px;
+      background: #f8fbfc;
+      border: 1px solid #edf3f5;
+    }
+
+    .stack-item span:first-child {
+      width: 32px;
+      height: 32px;
+      display: grid;
+      place-items: center;
+      background: white;
+      border: 1px solid #e3edf0;
+      border-radius: 9px;
+      flex: none;
+    }
+
+    .equals {
+      display: grid;
+      place-items: center;
+      color: var(--csv-blue);
+      font-size: 34px;
+      font-weight: 900;
+    }
+
+    .practice {
+      position: relative;
+      overflow: hidden;
+      color: white;
+      border-radius: var(--radius-xl);
+      background: linear-gradient(135deg, #052f46 0%, #0075a9 56%, #00a2d2 100%);
+      padding: 44px;
+      box-shadow: 0 28px 80px rgba(0,117,169,.2);
+    }
+
+    .practice::after {
+      content: "</>";
+      position: absolute;
+      right: 28px;
+      bottom: -26px;
+      font-size: 150px;
+      font-weight: 900;
+      color: rgba(255,255,255,.06);
+      letter-spacing: -.1em;
+    }
+
+    .practice-grid {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: 1fr .9fr;
+      gap: 35px;
+      align-items: center;
+    }
+
+    .practice h2 { max-width: 660px; }
+    .practice p { color: rgba(255,255,255,.78); line-height: 1.65; font-size: 17px; }
+
+    .challenge {
+      background: rgba(255,255,255,.11);
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 20px;
+      padding: 22px;
+      backdrop-filter: blur(10px);
+    }
+
+    .challenge small {
+      color: #9eeaff;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .10em;
+    }
+
+    .challenge h3 { margin: 9px 0 6px; font-size: 21px; }
+    .challenge p { margin: 0; font-size: 14px; }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity .65s ease, transform .65s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    footer {
+      padding: 32px 0 42px;
+      color: var(--csv-muted);
+      font-size: 13px;
+    }
+
+    .footer-inner {
+      border-top: 1px solid var(--csv-line);
+      padding-top: 24px;
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .pulse {
+      animation: pulse 2.2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(0,149,200,.22); }
+      50% { box-shadow: 0 0 0 12px rgba(0,149,200,0); }
+    }
+
+    @media (max-width: 950px) {
+      .hero-grid,
+      .pipeline-grid,
+      .practice-grid { grid-template-columns: 1fr; }
+      .journey { grid-template-columns: repeat(2, 1fr); }
+      .comparison { grid-template-columns: 1fr; }
+      .equals { min-height: 48px; transform: rotate(90deg); }
+      .hero { padding-top: 72px; }
+      .hero-card { min-height: 0; }
+      .nav-links a:nth-child(-n+2) { display: none; }
+    }
+
+    @media (max-width: 640px) {
+      .container { width: min(calc(100% - 26px), var(--max)); }
+      .nav-inner { min-height: 68px; }
+      .brand img { width: 145px; }
+      .nav-links a { display: none !important; }
+      .journey { grid-template-columns: 1fr; }
+      .section { padding: 68px 0; }
+      .section-head { align-items: start; flex-direction: column; }
+      .hero-card, .practice { padding: 22px; }
+      .pipeline-info, .pipeline-console { padding: 24px; }
+      h1 { font-size: 51px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ================================================================
+       TALLER DAM · GIT + CI/CD
+       Todo el CSS y JavaScript vive en este mismo archivo.
+
+       ZONAS IDEALES PARA LOS EJERCICIOS DEL TALLER:
+       1) HERO: cambiar título, texto o botón.
+       2) BLOQUES .step: añadir/modificar una tarjeta.
+       3) RETO FINAL: cambiar la petición del "cliente".
+       ================================================================ -->
+
+  <nav class="nav">
+    <div class="container nav-inner">
+      <a class="brand" href="#inicio" aria-label="Centro San Valero - inicio">
+        <!--
+          Logo servido directamente desde la web de Centro San Valero.
+          El script inferior prueba distintas rutas públicas históricas del CMS
+          y muestra una alternativa tipográfica si el sitio cambia la ruta.
+        -->
+        <img
+          id="csv-logo"
+          src="https://www.fundaciondfa.es/sites/default/files/2025-12/logo_centro-SanValero.png"
+          alt="Centro San Valero"
+          referrerpolicy="no-referrer"
+        />
+        <span class="brand-fallback" id="logo-fallback" aria-hidden="true">
+          <small>CENTRO</small><strong>SAN <span>VALERO</span></strong>
+        </span>
+      </a>
+
+      <div class="nav-links" aria-label="Navegación principal">
+        <a href="#flujo">Flujo</a>
+        <a href="#cicd">CI/CD</a>
+        <a href="#empresa">Empresa</a>
+        <a href="#reto">Reto práctico</a>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <section class="hero" id="inicio">
+      <div class="container hero-grid">
+        <div class="reveal visible">
+          <span class="eyebrow"><span class="eyebrow-dot"></span> Taller práctico · DAM</span>
+
+          <!-- ZONA DE PRÁCTICA 1: un cambio del cliente puede empezar aquí -->
+          <h1>Git en <span class="accent">acción</span>: Del Commit al Deploy</h1>
+          <p class="hero-copy">
+            Un recorrido práctico por el flujo real de un equipo de desarrollo:
+            tarea, rama <strong>feature</strong>, commit, Pull Request, revisión,
+            integración continua y despliegue automático.
+          </p>
+
+          <div class="hero-actions">
+            <a class="btn btn-primary pulse" href="#flujo">Ver el flujo ↓</a>
+            <button class="btn btn-secondary" id="demoBtn" type="button">▶ Simular pipeline</button>
+          </div>
+        </div>
+
+        <aside class="hero-card reveal" aria-label="Visualización del flujo de trabajo">
+          <div class="terminal-top">
+            <div class="window-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+            <div class="terminal-label">workflow.yml</div>
+          </div>
+          <div class="flow-visual" id="heroFlow">
+            <div class="flow-line active">
+              <div class="flow-icon">◫</div>
+              <div><strong>Issue</strong><small>Petición / tarea técnica</small></div>
+              <div class="flow-status">READY</div>
+            </div>
+            <div class="flow-line">
+              <div class="flow-icon">⑂</div>
+              <div><strong>feature/...</strong><small>Trabajo aislado en una rama</small></div>
+              <div class="flow-status">WAIT</div>
+            </div>
+            <div class="flow-line">
+              <div class="flow-icon">✓</div>
+              <div><strong>Pull Request</strong><small>Revisión y aprobación</small></div>
+              <div class="flow-status">WAIT</div>
+            </div>
+            <div class="flow-line">
+              <div class="flow-icon">⚙</div>
+              <div><strong>GitHub Actions</strong><small>CI/CD automático</small></div>
+              <div class="flow-status">WAIT</div>
+            </div>
+            <div class="flow-line">
+              <div class="flow-icon">↗</div>
+              <div><strong>GitHub Pages</strong><small>Web publicada</small></div>
+              <div class="flow-status">WAIT</div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section soft" id="flujo">
+      <div class="container">
+        <div class="section-head reveal">
+          <div>
+            <div class="section-kicker">01 · De la tarea al merge</div>
+            <h2>El flujo que repetiremos.</h2>
+          </div>
+          <p class="section-desc">
+            El código importa, pero en un equipo profesional importa también cómo llega un cambio,
+            cómo se trabaja sin romper lo existente y cómo termina integrado de forma controlada.
+          </p>
+        </div>
+
+        <div class="journey">
+          <article class="step reveal">
+            <div class="step-num">01</div>
+            <h3>Issue / tarea</h3>
+            <p>Traducimos una petición a una tarea clara, con objetivo y criterios de aceptación.</p>
+            <span class="step-tag">GitHub Issues</span>
+          </article>
+          <article class="step reveal">
+            <div class="step-num">02</div>
+            <h3>Rama feature</h3>
+            <p>Creamos una rama para desarrollar el cambio sin tocar directamente la rama principal.</p>
+            <span class="step-tag">feature/123-cambio</span>
+          </article>
+          <article class="step reveal">
+            <div class="step-num">03</div>
+            <h3>Commit & push</h3>
+            <p>Guardamos cambios con sentido, revisamos el histórico y los publicamos en remoto.</p>
+            <span class="step-tag">SourceTree</span>
+          </article>
+          <article class="step reveal">
+            <div class="step-num">04</div>
+            <h3>Pull Request</h3>
+            <p>Otro miembro revisa el diff, comenta, aprueba y finalmente se integra el cambio.</p>
+            <span class="step-tag">Review + Merge</span>
+          </article>
+          <article class="step reveal">
+            <div class="step-num">05</div>
+            <h3>Integración continua</h3>
+            <p>Tras el merge, una acción automática valida que el proyecto está preparado para desplegar.</p>
+            <span class="step-tag">CI · GitHub Actions</span>
+          </article>
+          <article class="step reveal">
+            <div class="step-num">06</div>
+            <h3>Despliegue</h3>
+            <p>El contenido aprobado se publica automáticamente sin copiar archivos a mano.</p>
+            <span class="step-tag">CD · GitHub Pages</span>
+          </article>
+          <article class="step reveal">
+            <div class="step-num">07</div>
+            <h3>Conflictos</h3>
+            <p>Veremos qué ocurre cuando dos personas modifican la misma zona y Git necesita ayuda.</p>
+            <span class="step-tag">Merge conflict</span>
+          </article>
+          <article class="step reveal">
+            <div class="step-num">08</div>
+            <h3>Release</h3>
+            <p>Comentaremos cómo separar desarrollo y producción con ramas y pipelines diferentes.</p>
+            <span class="step-tag">release/*</span>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="cicd">
+      <div class="container">
+        <div class="section-head reveal">
+          <div>
+            <div class="section-kicker">02 · CI/CD</div>
+            <h2>De un merge a una web online.</h2>
+          </div>
+          <p class="section-desc">
+            La automatización reduce pasos manuales: cada cambio aprobado sigue siempre el mismo proceso,
+            queda registrado y puede fallar de forma visible antes de llegar al usuario.
+          </p>
+        </div>
+
+        <div class="pipeline-shell reveal">
+          <div class="pipeline-grid">
+            <div class="pipeline-info">
+              <div class="section-kicker" style="color:#8ee6ff">DEMO INTERACTIVA</div>
+              <h3>Pipeline de despliegue</h3>
+              <p>
+                Pulsa el botón para simular lo que ocurrirá después de completar una Pull Request
+                y hacer merge sobre <strong>main</strong>.
+              </p>
+              <div class="pipeline-actions">
+                <button class="btn btn-primary" id="runPipeline" type="button">▶ Ejecutar pipeline</button>
+                <button class="btn btn-secondary" id="resetPipeline" type="button">↺ Reiniciar</button>
+              </div>
+            </div>
+
+            <div class="pipeline-console">
+              <div class="console" aria-live="polite">
+                <div class="console-row" data-row="0"><span class="console-prefix">$</span><span>push detectado en <b>main</b></span></div>
+                <div class="console-row" data-row="1"><span class="console-prefix">→</span><span>checkout del repositorio</span></div>
+                <div class="console-row" data-row="2"><span class="console-prefix">→</span><span>validando <b>index.html</b></span></div>
+                <div class="console-row" data-row="3"><span class="console-ok">✓</span><span>validaciones completadas</span></div>
+                <div class="console-row" data-row="4"><span class="console-prefix">→</span><span>generando artefacto para GitHub Pages</span></div>
+                <div class="console-row" data-row="5"><span class="console-prefix">→</span><span>desplegando versión...</span></div>
+                <div class="console-row" data-row="6"><span class="console-ok">✓</span><span><b>Deploy completado</b> · sitio actualizado</span></div>
+                <div class="console-row console-muted" data-row="7"><span>i</span><span>El mismo proceso se repetirá con cada cambio aprobado.</span></div>
+              </div>
+              <div class="progress" aria-hidden="true"><span id="pipelineProgress"></span></div>
+              <small id="pipelineStatus" class="console-muted">Esperando ejecución…</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section soft" id="empresa">
+      <div class="container">
+        <div class="section-head reveal">
+          <div>
+            <div class="section-kicker">03 · Del aula a la empresa</div>
+            <h2>Herramientas distintas. Mismo flujo.</h2>
+          </div>
+          <p class="section-desc">
+            Durante el taller trabajaremos con GitHub por simplicidad. En proyectos reales se pueden
+            cambiar las herramientas, pero los conceptos y la forma de colaborar son prácticamente los mismos.
+          </p>
+        </div>
+
+        <div class="comparison reveal">
+          <article class="stack-card">
+            <span class="label">Taller</span>
+            <h3>GitHub + GitHub Pages</h3>
+            <div class="stack-list">
+              <div class="stack-item"><span>☑</span><span><strong>GitHub Issues</strong><br><small>Tareas técnicas</small></span></div>
+              <div class="stack-item"><span>⑂</span><span><strong>GitHub Repository</strong><br><small>Ramas y código</small></span></div>
+              <div class="stack-item"><span>✓</span><span><strong>Pull Requests</strong><br><small>Review + merge</small></span></div>
+              <div class="stack-item"><span>⚙</span><span><strong>GitHub Actions</strong><br><small>CI/CD</small></span></div>
+              <div class="stack-item"><span>↗</span><span><strong>GitHub Pages</strong><br><small>Hosting</small></span></div>
+            </div>
+          </article>
+
+          <div class="equals" aria-label="equivale a">≈</div>
+
+          <article class="stack-card">
+            <span class="label">Empresa</span>
+            <h3>ClickUp + Azure DevOps + Azure</h3>
+            <div class="stack-list">
+              <div class="stack-item"><span>☑</span><span><strong>ClickUp</strong><br><small>Petición de cliente a alto nivel</small></span></div>
+              <div class="stack-item"><span>▦</span><span><strong>Azure Boards</strong><br><small>Work Items técnicos</small></span></div>
+              <div class="stack-item"><span>⑂</span><span><strong>Azure Repos</strong><br><small>Ramas y Pull Requests</small></span></div>
+              <div class="stack-item"><span>⚙</span><span><strong>Azure Pipelines</strong><br><small>Build + CI/CD</small></span></div>
+              <div class="stack-item"><span>☁</span><span><strong>Microsoft Azure</strong><br><small>Entornos cloud</small></span></div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="reto">
+      <div class="container">
+        <div class="practice reveal">
+          <div class="practice-grid">
+            <div>
+              <div class="section-kicker" style="color:#a9eaff">04 · Ahora os toca</div>
+              <h2>Este HTML será vuestro pequeño proyecto real.</h2>
+              <p>
+                Lo clonaremos, lo modificaremos desde VS Code, versionaremos los cambios con SourceTree,
+                pediremos revisión a un compañero y veremos cómo el resultado termina publicado en Internet.
+              </p>
+            </div>
+
+            <!-- ZONA DE PRÁCTICA 2: ideal para convertirla en el cambio solicitado por el cliente -->
+            <div class="challenge">
+              <small>Ejemplo de petición del cliente</small>
+              <h3>“Añadid una nueva sección de contacto.”</h3>
+              <p>
+                Esa petición se convertirá en un Issue, una rama <b>feature</b>, varios cambios,
+                una Pull Request y finalmente un nuevo despliegue.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footer-inner">
+      <span>Centro San Valero · Taller DAM · Git + CI/CD</span>
+    </div>
+  </footer>
+
+  <script>
+    (() => {
+      /* ------------------------------------------------------------------
+         LOGO
+         El CMS de San Valero ha servido el recurso logo_2.png desde
+         diferentes rutas. Se prueban rutas del propio dominio y, si ninguna
+         responde, aparece una representación tipográfica para que la página
+         siga siendo usable offline.
+         ------------------------------------------------------------------ */
+      const logo = document.getElementById('csv-logo');
+      const fallback = document.getElementById('logo-fallback');
+      const logoCandidates = [
+        'https://www.fundaciondfa.es/sites/default/files/2025-12/logo_centro-SanValero.png'
+      ];
+      let logoIndex = 0;
+
+      logo.addEventListener('error', () => {
+        logoIndex += 1;
+        if (logoIndex < logoCandidates.length) {
+          logo.src = logoCandidates[logoIndex];
+        } else {
+          logo.style.display = 'none';
+          fallback.style.display = 'inline-block';
+        }
+      });
+
+      /* Animaciones de entrada */
+      const revealElements = document.querySelectorAll('.reveal:not(.visible)');
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.13 });
+      revealElements.forEach(el => observer.observe(el));
+
+      /* Visualización superior del workflow */
+      const flowLines = [...document.querySelectorAll('#heroFlow .flow-line')];
+      let flowTimer = null;
+
+      function animateHeroFlow() {
+        if (flowTimer) clearInterval(flowTimer);
+        let current = 0;
+        flowLines.forEach((line, i) => {
+          line.classList.toggle('active', i === 0);
+          line.querySelector('.flow-status').textContent = i === 0 ? 'RUN' : 'WAIT';
+        });
+
+        flowTimer = setInterval(() => {
+          current += 1;
+          if (current >= flowLines.length) {
+            clearInterval(flowTimer);
+            flowTimer = null;
+            flowLines.forEach(line => line.querySelector('.flow-status').textContent = 'DONE');
+            return;
+          }
+          flowLines[current].classList.add('active');
+          flowLines[current].querySelector('.flow-status').textContent = 'RUN';
+          if (current > 0) flowLines[current - 1].querySelector('.flow-status').textContent = 'DONE';
+        }, 520);
+      }
+
+      document.getElementById('demoBtn').addEventListener('click', () => {
+        animateHeroFlow();
+        document.getElementById('cicd').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(runPipeline, 450);
+      });
+
+      /* Demo de pipeline */
+      const rows = [...document.querySelectorAll('.console-row')];
+      const progress = document.getElementById('pipelineProgress');
+      const status = document.getElementById('pipelineStatus');
+      const runButton = document.getElementById('runPipeline');
+      let pipelineTimers = [];
+
+      function clearPipelineTimers() {
+        pipelineTimers.forEach(t => clearTimeout(t));
+        pipelineTimers = [];
+      }
+
+      function resetPipeline() {
+        clearPipelineTimers();
+        rows.forEach(row => row.classList.remove('show'));
+        progress.style.width = '0%';
+        status.textContent = 'Esperando ejecución…';
+        runButton.disabled = false;
+        runButton.textContent = '▶ Ejecutar pipeline';
+      }
+
+      function runPipeline() {
+        resetPipeline();
+        runButton.disabled = true;
+        runButton.textContent = 'Ejecutando…';
+        status.textContent = 'Pipeline en curso';
+
+        rows.forEach((row, index) => {
+          const timer = setTimeout(() => {
+            row.classList.add('show');
+            const pct = Math.round(((index + 1) / rows.length) * 100);
+            progress.style.width = pct + '%';
+
+            if (index === rows.length - 1) {
+              status.textContent = '✓ Deploy completado correctamente';
+              runButton.disabled = false;
+              runButton.textContent = '▶ Ejecutar de nuevo';
+              animateHeroFlow();
+            }
+          }, index * 520);
+          pipelineTimers.push(timer);
+        });
+      }
+
+      runButton.addEventListener('click', runPipeline);
+      document.getElementById('resetPipeline').addEventListener('click', resetPipeline);
+    })();
+  </script>
+</body>
+</html>
